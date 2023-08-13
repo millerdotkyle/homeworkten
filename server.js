@@ -1,18 +1,16 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
 
-// // Connect to database
-// const db = mysql.createConnection(
-//     {
-//       host: 'localhost',
-//       // MySQL username,
-//       user: 'root',
-//       // MySQL password
-//       password: 'thereisnofatebutwhatwemake',
-//       database: 'classlist_db'
-//     },
-//     console.log(`Connected to the classlist_db database.`)
-//   );
+// Connect to database
+const db = mysql.createConnection(
+    {
+      host: 'localhost',
+      user: 'root',
+      password: 'thereisnofatebutwhatwemake',
+      database: 'company_db'
+    },
+    console.log(`Connected to the database.`)
+  );
   
 
 
