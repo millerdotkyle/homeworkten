@@ -102,7 +102,7 @@ addRole = () => {
           }
       ]).then((choices) => { 
         console.log(choices);
-        db.query(`INSERT INTO roles (title, salary, department_id) VALUES ('${choices.title}', '${choices.salary}', '${choices.deptName}')`, function(err, results) {
+        db.query(`INSERT INTO roles (title, salary, department_id) VALUES ('${choices.title}', '${choices.salary}', '${choices.deptName}')`, (err, res) => {
           if (err) {throw err};
           console.log('ADDED!');
           init();
@@ -112,39 +112,58 @@ addRole = () => {
 };
 
 
-    const addEmployee = () => {
-      db.query('SELECT * FROM departments', function(err, departments) {
-        if(err) {console.log(err)};
-        departments = departments.map((department) => {
-          return {name: department.name, value: department.id}
-        });
-      });
+addEmployee = () => {
+  db.query(`SELECT * FROM roles;`, (err, res) => {
+    if (err) throw err;
+    let roles = res.map((role) => ({ name: role.title, value: role.id }));
+    db.query(`SELECT * FROM employees;`, (err, res) => {
+      if (err) throw err;
+      let employees = res.map((employee) => ({
+        name: employee.first_name + employee.last_name,
+        value: employee.id,
+      }));
+      employees.unshift({'name': 'None', 'value': 0});
+      console.log(employees);
       inquirer
-      .prompt([
-        {
-            type: 'input',
-            message: 'Enter role title',
-            name: 'title'
-        },
-        {
-          type: 'input',
-          message: 'What is the salary?',
-          name: 'salary' 
-        },
-        {
-          type: 'rawlist',
-          message: 'What department does this role belong to?',
-          choices: departments,
-          name: dept
-        }
-      ])
-      .then((choices) => { 
-        db.query(`INSERT INTO roles (title, salary, department_id) VALUES ('${choices.title}', '${choices.salry}', '${choices.dept}')`, function(err, results) {
-          if (err) {throw err};
-          console.log('ADDED!');
-          init();
+        .prompt([
+          {
+            name: "fname",
+            type: "input",
+            message: "What is the first name of the new employee?",
+          },
+          {
+            name: "lname",
+            type: "input",
+            message: "What is the last tname of the new employee?",
+          },
+          {
+            name: "mgr",
+            type: "list",
+            message: "Who is the manager of the employee you want to add?",
+            choices: employees,
+          },
+          {
+            name: "role",
+            type: "list",
+            message: "What is the role of this new employee?",
+            choices: roles,
+          },
+        ])
+        .then((choices) => {
+          console.log(choices);
+          db.query(
+            `INSERT INTO employees (first_name, last_name, manager_id, role_id) VALUES ('${choices.fname}', '${choices.lname}', '${choices.mgr}', '${choices.role}')`,
+            (err, res) => {
+              if (err) {
+                throw err;
+              }
+              console.log("ADDED!");
+              init();
+            },
+          );
         });
-    })};
+    });
+  });
+};
 
-
-    init();
+init();
