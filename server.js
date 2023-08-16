@@ -22,7 +22,7 @@ init = () => {
     {
         type: 'list',
         message: 'What operation would you like to perform?',
-        choices: ['view all depts', 'view all roles', 'view all employees', 'add a dept', 'add a role', 'add an employee', 'update employee'],
+        choices: ['view all depts', 'view all roles', 'view all employees', 'add a dept', 'add a role', 'add an employee', 'update employee role'],
         name: 'op'
     }
   ])
@@ -46,8 +46,6 @@ init = () => {
       });
     };
 
-
-
     if(choice.op === "add a dept") {
       inquirer
       .prompt([
@@ -65,9 +63,13 @@ init = () => {
     })
     };
 
+
     if(choice.op === "add a role") {
       addRole();
-      
+    };
+
+    if(choice.op === "add an employee") {
+      addEmployee();
     };
 
 
@@ -76,7 +78,41 @@ init = () => {
 };
 
 
-const addRole = () => {
+addRole = () => {
+  db.query(`SELECT * FROM departments;`, (err, res) => {
+      if (err) throw err;
+      departments = res.map(department => ({name: department.dept_name, value: department.id }));
+      console.log(departments);
+      inquirer.prompt([
+          {
+          name: 'title',
+          type: 'input',
+          message: 'What is the name of the role you want to add?'   
+          },
+          {
+          name: 'salary',
+          type: 'input',
+          message: 'What is the salary of the role you want to add?'   
+          },
+          {
+          name: 'deptName',
+          type: 'list',
+          message: 'Which department do you want to add the new role to?',
+          choices: departments
+          }
+      ]).then((choices) => { 
+        console.log(choices);
+        db.query(`INSERT INTO roles (title, salary, department_id) VALUES ('${choices.title}', '${choices.salary}', '${choices.deptName}')`, function(err, results) {
+          if (err) {throw err};
+          console.log('ADDED!');
+          init();
+        })
+      })
+    })
+};
+
+
+    const addEmployee = () => {
       db.query('SELECT * FROM departments', function(err, departments) {
         if(err) {console.log(err)};
         departments = departments.map((department) => {
@@ -109,3 +145,6 @@ const addRole = () => {
           init();
         });
     })};
+
+
+    init();
