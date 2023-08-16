@@ -34,16 +34,19 @@ init = () => {
       db.query('SELECT * FROM departments', function(err, results) {
         console.log(results);
       });
+      init();
     };
     if(choice.op === "view all roles") {
       db.query('SELECT * FROM roles', function(err, results) {
         console.log(results);
       });
+      init();
     };
     if(choice.op === "view all employees") {
       db.query('SELECT * FROM employees', function(err, results) {
         console.log(results);
       });
+      init();
     };
 
     if(choice.op === "add a dept") {
@@ -56,22 +59,29 @@ init = () => {
         }
       ])
       .then((choice) => { 
-        db.query(`INSERT INTO departments (deptartment_name) VALUES ('${choice.q}')`, function(err, results) {
-          console.log(err);
-          console.log(results);
+        db.query(`INSERT INTO departments (dept_name) VALUES ('${choice.q}')`, function(err, results) {
+          if (err) {throw err};
+          console.log('ADDED!');
         });
-    })
+        init();
+    });
     };
 
 
     if(choice.op === "add a role") {
       addRole();
+      init();
     };
 
     if(choice.op === "add an employee") {
       addEmployee();
+      init();
     };
 
+    if(choice.op === "update employee role") {
+      updateRole();
+      init();
+    }
 
   });
 
@@ -81,7 +91,7 @@ init = () => {
 addRole = () => {
   db.query(`SELECT * FROM departments;`, (err, res) => {
       if (err) throw err;
-      departments = res.map(department => ({name: department.dept_name, value: department.id }));
+      let departments = res.map(department => ({name: department.dept_name, value: department.id }));
       console.log(departments);
       inquirer.prompt([
           {
@@ -105,7 +115,6 @@ addRole = () => {
         db.query(`INSERT INTO roles (title, salary, department_id) VALUES ('${choices.title}', '${choices.salary}', '${choices.deptName}')`, (err, res) => {
           if (err) {throw err};
           console.log('ADDED!');
-          init();
         })
       })
     })
@@ -158,12 +167,55 @@ addEmployee = () => {
                 throw err;
               }
               console.log("ADDED!");
-              init();
             },
           );
         });
     });
   });
 };
+
+
+updateRole = () => {
+  db.query(`SELECT * FROM roles;`, (err, res) => {
+    if (err) throw err;
+    let roles = res.map((role) => ({ name: role.title, value: role.id }));
+    db.query(`SELECT * FROM employees;`, (err, res) => {
+      if (err) throw err;
+      let employees = res.map((employee) => ({
+        name: employee.first_name + employee.last_name,
+        value: employee.id,
+      }));
+      inquirer
+        .prompt([
+          {
+            name: "employee",
+            type: "list",
+            message: "Who do you want to update the role for?",
+            choices: employees
+          },
+          {
+            name: "role",
+            type: "list",
+            message: "What is the role of this new employee?",
+            choices: roles
+          },
+        ])
+        .then((choices) => {
+          console.log(choices);
+          db.query(
+            `UPDATE employees SET role_id='${choices.role}' WHERE id='${choices.employee}'`,
+            (err, res) => {
+              if (err) {
+                throw err;
+              }
+              console.log("ADDED!");
+            },
+          );
+        });
+    });
+  });
+};
+
+
 
 init();
